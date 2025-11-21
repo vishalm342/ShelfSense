@@ -1,0 +1,38 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #E07A5F;
+  --color-background-light: #F5F5DC;
+  --color-text-charcoal: #36454F;
+  --color-text-forest: #3D403D;
+  --color-accent-sage: #B2AC88;
+
+  --font-display: 'Crimson Pro', serif;
+  --font-sans: 'Inter', sans-serif;
+
+  --radius: 8px;
+  --radius-lg: 12px;
+}
+
+@layer base {
+  body {
+    background-color: var(--color-background-light);
+    color: var(--color-text-charcoal);
+    font-family: var(--font-sans);
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+    color: var(--color-text-forest);
+  }
+}
+
+@layer utilities {
+  .font-crimson {
+    font-family: 'Crimson Pro', serif;
+  }
+
+  .font-inter {
+    font-family: 'Inter', sans-serif;
+  }
+}
