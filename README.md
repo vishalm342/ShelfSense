@@ -10,9 +10,7 @@ ShelfSense simplifies book collection management by providing a centralized plat
 - Track reading statistics and progress
 - Get personalized book recommendations
 - Maintain a digital library accessible anywhere
-
-## Tech Stack
-
+                                                                
 ### Frontend
 - **React 19** - UI framework
 - **Vite** - Build tool and dev server
