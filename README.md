@@ -149,15 +149,15 @@ ShelfSense/
 
 For questions, feedback, or support:
 
-- **Email**: your.email@example.com
-- **GitHub**: [@yourusername](https://github.com/yourusername)
+- **Email**: vishalm8656@gmail.com
+- **GitHub**: [@yourusername](https://github.com/vishalm342)
 - **Issues**: [Report a bug](https://github.com/yourusername/ShelfSense/issues)
 
 ## License
 
 MIT License
 
-Copyright (c) 2024 ShelfSense
+Copyright (c) 2025 ShelfSense
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
