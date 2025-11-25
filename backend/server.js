@@ -1,21 +1,22 @@
+// IMPORTANT: Load environment variables FIRST before any other imports
+// This must be the very first import to ensure process.env is populated
+import './config/env.js';
+
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
-import dotenv from 'dotenv';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 
-// Import routes
+// Import routes (these modules can now safely read from process.env)
 import authRoutes from './routes/auth.js';
 import userRoutes from './routes/users.js';
+import bookRoutes from './routes/books.js';
 
 // Import middleware
 import errorHandler from './middleware/errorHandler.js';
 import notFound from './middleware/notFound.js';
-
-// Configure environment variables
-dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -62,6 +63,7 @@ app.get('/health', (req, res) => {
 // API routes
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/books', bookRoutes);
 
 // 404 handler
 app.use(notFound);
