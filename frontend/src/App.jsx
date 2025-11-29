@@ -13,6 +13,7 @@ import ScannerPage from './pages/ScannerPage';
 import RecommendationsPage from './pages/RecommendationsPage';
 import BookDetailPage from './pages/BookDetailPage';
 import SearchBooksPage from './pages/SearchBooksPage';
+import ImportGoodreadsPage from './pages/ImportGoodreadsPage';
 
 function App() {
   const initializeAuth = useAuthStore((state) => state.initializeAuth);
@@ -68,6 +69,14 @@ function App() {
           element={
             <ProtectedRoute>
               <RecommendationsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/import"
+          element={
+            <ProtectedRoute>
+              <ImportGoodreadsPage />
             </ProtectedRoute>
           }
         />
