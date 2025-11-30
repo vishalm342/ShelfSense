@@ -13,10 +13,15 @@ import { dirname } from 'path';
 import authRoutes from './routes/auth.js';
 import userRoutes from './routes/users.js';
 import bookRoutes from './routes/books.js';
+import recommendationsRoutes from './routes/recommendations.js';
+import importRoutes from './routes/import.js';
 
 // Import middleware
 import errorHandler from './middleware/errorHandler.js';
 import notFound from './middleware/notFound.js';
+
+// Import Gemini service for initialization
+import { initializeGemini } from './services/geminiService.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -64,6 +69,8 @@ app.get('/health', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/books', bookRoutes);
+app.use('/api/recommendations', recommendationsRoutes);
+app.use('/api/import', importRoutes);
 
 // 404 handler
 app.use(notFound);
@@ -71,11 +78,25 @@ app.use(notFound);
 // Error handling middleware
 app.use(errorHandler);
 
+// Initialize Gemini AI on startup
+try {
+  initializeGemini();
+  console.log('✅ Gemini AI initialized successfully');
+} catch (error) {
+  console.error('⚠️  Warning: Failed to initialize Gemini AI:', error.message);
+  console.error('   Recommendations will use fallback mode');
+}
+
 // Start server
 app.listen(PORT, () => {
-  console.log(`🚀 ShelfSense API server running on port ${PORT}`);
+  console.log('\n╔════════════════════════════════════════════════════════╗');
+  console.log('║          🚀 ShelfSense API Server Running             ║');
+  console.log('╚════════════════════════════════════════════════════════╝');
   console.log(`📖 Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`🔗 API URL: http://localhost:${PORT}`);
+  console.log(`🔑 Google Books API: ${process.env.GOOGLE_BOOKS_API_KEY ? '✅ Configured' : '❌ Missing'}`);
+  console.log(`🤖 Gemini AI API: ${process.env.GEMINI_API_KEY ? '✅ Configured' : '❌ Missing'}`);
+  console.log('══════════════════════════════════════════════════════════\n');
 });
 
 export default app;
