@@ -54,7 +54,7 @@ const Footer = () => {
           </div>
         </div>
         <div className="mt-12 border-t border-[var(--color-accent-sage)]/20 pt-8 text-center text-sm text-[var(--color-text-charcoal)]">
-          <p>© 2024 ShelfSense. All rights reserved.</p>
+          <p>© 2025 ShelfSense. All rights reserved.</p>
         </div>
       </div>
     </footer>
