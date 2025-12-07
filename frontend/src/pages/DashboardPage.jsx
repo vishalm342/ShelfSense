@@ -1,10 +1,18 @@
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Camera, Search, Download, BookOpen, Book, BookMarked, LogOut } from 'lucide-react';
+import { Sparkles, Search, Download, BookOpen, Book, BookMarked, LogOut } from 'lucide-react';
 import useAuthStore from '../store/authStore';
+import useBookStore from '../store/bookStore';
 
 export default function DashboardPage() {
   const { user, signOut } = useAuthStore();
+  const { stats, fetchStats } = useBookStore();
   const navigate = useNavigate();
+
+  // Fetch stats when component mounts
+  useEffect(() => {
+    fetchStats();
+  }, [fetchStats]);
 
   const handleSignOut = async () => {
     const result = await signOut();
@@ -65,7 +73,7 @@ export default function DashboardPage() {
               </div>
               <p className="text-sm font-medium text-[var(--color-text-charcoal)]">Total Books</p>
             </div>
-            <p className="text-3xl font-bold text-[var(--color-text-forest)]">0</p>
+            <p className="text-3xl font-bold text-[var(--color-text-forest)]">{stats.totalBooks}</p>
           </div>
 
           <div className="bg-white rounded-lg border border-[var(--color-accent-sage)]/30 p-6 shadow-sm">
@@ -75,7 +83,7 @@ export default function DashboardPage() {
               </div>
               <p className="text-sm font-medium text-[var(--color-text-charcoal)]">Books Read</p>
             </div>
-            <p className="text-3xl font-bold text-[var(--color-text-forest)]">0</p>
+            <p className="text-3xl font-bold text-[var(--color-text-forest)]">{stats.booksRead}</p>
           </div>
 
           <div className="bg-white rounded-lg border border-[var(--color-accent-sage)]/30 p-6 shadow-sm">
@@ -87,44 +95,46 @@ export default function DashboardPage() {
                 Currently Reading
               </p>
             </div>
-            <p className="text-3xl font-bold text-[var(--color-text-forest)]">0</p>
+            <p className="text-3xl font-bold text-[var(--color-text-forest)]">{stats.currentlyReading}</p>
           </div>
         </div>
 
-        {/* Empty State */}
-        <div className="bg-white rounded-lg border border-[var(--color-accent-sage)]/30 p-12 text-center shadow-sm mb-8">
-          <div className="max-w-md mx-auto">
-            <div className="mb-6">
-              <div className="inline-flex items-center justify-center w-20 h-20 bg-[var(--color-primary)]/10 rounded-full mb-4">
-                <BookOpen className="text-[var(--color-primary)] w-10 h-10" />
+        {/* Empty State - Only show when no books */}
+        {stats.totalBooks === 0 && (
+          <div className="bg-white rounded-lg border border-[var(--color-accent-sage)]/30 p-12 text-center shadow-sm mb-8">
+            <div className="max-w-md mx-auto">
+              <div className="mb-6">
+                <div className="inline-flex items-center justify-center w-20 h-20 bg-[var(--color-primary)]/10 rounded-full mb-4">
+                  <BookOpen className="text-[var(--color-primary)] w-10 h-10" />
+                </div>
+                <h3 className="font-display text-2xl font-bold text-[var(--color-text-forest)] mb-2">
+                  Your library is empty
+                </h3>
+                <p className="text-[var(--color-text-charcoal)]">
+                  Get started by adding books to your collection or scanning your bookshelf
+                </p>
               </div>
-              <h3 className="font-display text-2xl font-bold text-[var(--color-text-forest)] mb-2">
-                Your library is empty
-              </h3>
-              <p className="text-[var(--color-text-charcoal)]">
-                Get started by adding books to your collection or scanning your bookshelf
-              </p>
             </div>
           </div>
-        </div>
+        )}
 
         {/* Action Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Scan Bookshelf */}
+          {/* Get Recommendations */}
           <button
-            onClick={() => alert('Scanner feature coming soon!')}
+            onClick={() => navigate('/recommendations')}
             className="bg-white rounded-lg border border-[var(--color-accent-sage)]/30 p-6 text-left hover:shadow-lg hover:border-[var(--color-primary)]/50 transition group"
           >
             <div className="flex items-start gap-4">
               <div className="p-3 bg-[var(--color-primary)]/10 rounded-lg group-hover:bg-[var(--color-primary)] transition">
-                <Camera className="text-[var(--color-primary)] group-hover:text-white w-6 h-6 transition" />
+                <Sparkles className="text-[var(--color-primary)] group-hover:text-white w-6 h-6 transition" />
               </div>
               <div>
                 <h4 className="font-display text-lg font-bold text-[var(--color-text-forest)] mb-1">
-                  Scan Bookshelf
+                  Get Recommendations
                 </h4>
                 <p className="text-sm text-[var(--color-text-charcoal)]">
-                  Use your camera to quickly add books from your shelf
+                  Discover books based on your reading taste
                 </p>
               </div>
             </div>
@@ -152,7 +162,7 @@ export default function DashboardPage() {
 
           {/* Import from Goodreads */}
           <button
-            onClick={() => alert('Import feature coming soon!')}
+            onClick={() => navigate('/import')}
             className="bg-white rounded-lg border border-[var(--color-accent-sage)]/30 p-6 text-left hover:shadow-lg hover:border-[var(--color-primary)]/50 transition group"
           >
             <div className="flex items-start gap-4">
