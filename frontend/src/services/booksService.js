@@ -1,176 +1,116 @@
-import { supabase } from '../lib/supabase'
+import api from './api';
 
-// Search Google Books API
+// Search Google Books API through our backend
+// Now uses authenticated backend endpoint with API key for better rate limits
 export async function searchBooks(query) {
   try {
-    const response = await fetch(
-      `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(query)}&maxResults=20`
-    )
-    const data = await response.json()
+    // Call our backend API which securely uses the Google Books API key
+    // Benefits of using backend proxy:
+    // 1. API key is kept secret on the server (not exposed in frontend code)
+    // 2. Higher rate limits (1000 requests/day vs 100/day)
+    // 3. Better tracking and monitoring of API usage
+    // 4. Consistent error handling and response format
+    const response = await api.get('/books/search', {
+      params: { q: query }
+    })
 
-    if (!data.items) return []
-
-    // Format books for our app
-    return data.items.map(item => ({
-      googleBooksId: item.id,
-      title: item.volumeInfo.title || 'Unknown Title',
-      subtitle: item.volumeInfo.subtitle || null,
-      authors: item.volumeInfo.authors || ['Unknown Author'],
-      description: item.volumeInfo.description || 'No description available',
-      categories: item.volumeInfo.categories || [],
-      thumbnailUrl: item.volumeInfo.imageLinks?.thumbnail || null,
-      coverUrl: item.volumeInfo.imageLinks?.large || item.volumeInfo.imageLinks?.medium || null,
-      isbn10: item.volumeInfo.industryIdentifiers?.find(id => id.type === 'ISBN_10')?.identifier || null,
-      isbn13: item.volumeInfo.industryIdentifiers?.find(id => id.type === 'ISBN_13')?.identifier || null,
-      publisher: item.volumeInfo.publisher || null,
-      publishedDate: item.volumeInfo.publishedDate || null,
-      pageCount: item.volumeInfo.pageCount || null,
-      averageRating: item.volumeInfo.averageRating || null,
-      ratingsCount: item.volumeInfo.ratingsCount || null
-    }))
+    return response.data.data || []
   } catch (error) {
     console.error('Error searching books:', error)
-    throw new Error('Failed to search books')
+    const errorMessage = error.response?.data?.error?.message || error.message || 'Failed to search books'
+    throw new Error(errorMessage)
   }
 }
 
 // Add book to user's library
-export async function addBookToLibrary(bookData, userId, status = 'want_to_read') {
+export async function addBookToLibrary(bookData, status = 'want_to_read') {
   try {
-    // Check if book already exists in books table
-    const { data: existingBook, error: searchError } = await supabase
-      .from('books')
-      .select('id')
-      .eq('google_books_id', bookData.googleBooksId)
-      .single()
-
-    let bookId
-
-    if (existingBook) {
-      bookId = existingBook.id
-    } else {
-      // Insert new book
-      const { data: newBook, error: insertError } = await supabase
-        .from('books')
-        .insert({
-          google_books_id: bookData.googleBooksId,
-          title: bookData.title,
-          subtitle: bookData.subtitle,
-          authors: bookData.authors,
-          description: bookData.description,
-          categories: bookData.categories,
-          thumbnail_url: bookData.thumbnailUrl,
-          cover_url: bookData.coverUrl,
-          isbn_10: bookData.isbn10,
-          isbn_13: bookData.isbn13,
-          publisher: bookData.publisher,
-          published_date: bookData.publishedDate,
-          page_count: bookData.pageCount,
-          average_rating: bookData.averageRating,
-          ratings_count: bookData.ratingsCount
-        })
-        .select()
-        .single()
-
-      if (insertError) throw insertError
-      bookId = newBook.id
-    }
-
-    // Check if user already has this book
-    const { data: existingLibraryEntry } = await supabase
-      .from('user_libraries')
-      .select('id')
-      .eq('user_id', userId)
-      .eq('book_id', bookId)
-      .single()
-
-    if (existingLibraryEntry) {
-      throw new Error('Book already in your library')
-    }
-
-    // Add to user's library
-    const { data: libraryEntry, error: libraryError } = await supabase
-      .from('user_libraries')
-      .insert({
-        user_id: userId,
-        book_id: bookId,
-        status: status,
-        source: 'manual',
-        date_added: new Date().toISOString()
-      })
-      .select()
-      .single()
-
-    if (libraryError) throw libraryError
-
-    return { success: true, data: libraryEntry }
+    const response = await api.post('/books', {
+      googleBooksId: bookData.googleBooksId,
+      title: bookData.title,
+      subtitle: bookData.subtitle,
+      authors: bookData.authors,
+      description: bookData.description,
+      categories: bookData.categories,
+      thumbnailUrl: bookData.thumbnailUrl,
+      coverUrl: bookData.coverUrl,
+      isbn10: bookData.isbn10,
+      isbn13: bookData.isbn13,
+      publisher: bookData.publisher,
+      publishedDate: bookData.publishedDate,
+      pageCount: bookData.pageCount,
+      averageRating: bookData.averageRating,
+      ratingsCount: bookData.ratingsCount,
+      language: bookData.language,
+      status: status
+    })
+    return { success: true, data: response.data.data }
   } catch (error) {
     console.error('Error adding book:', error)
-    return { success: false, error: error.message }
+    const errorMessage = error.response?.data?.error?.message || error.message || 'Failed to add book'
+    return { success: false, error: errorMessage }
   }
 }
 
 // Get user's library
-export async function getUserLibrary(userId) {
+export async function getUserLibrary(status = null) {
   try {
-    const { data, error } = await supabase
-      .from('user_libraries')
-      .select(`
-        *,
-        books (*)
-      `)
-      .eq('user_id', userId)
-      .order('added_at', { ascending: false })
-
-    if (error) throw error
-    return { success: true, data }
+    const params = status ? { status } : {}
+    const response = await api.get('/books', { params })
+    return { success: true, data: response.data.data }
   } catch (error) {
     console.error('Error fetching library:', error)
-    return { success: false, error: error.message }
+    const errorMessage = error.response?.data?.error?.message || error.message || 'Failed to fetch library'
+    return { success: false, error: errorMessage }
+  }
+}
+
+// Get user's library statistics
+export async function getUserStats() {
+  try {
+    const response = await api.get('/books/stats')
+    return { success: true, data: response.data.data }
+  } catch (error) {
+    console.error('Error fetching stats:', error)
+    const errorMessage = error.response?.data?.error?.message || error.message || 'Failed to fetch stats'
+    return { success: false, error: errorMessage }
   }
 }
 
 // Update book status
-export async function updateBookStatus(libraryId, newStatus) {
+export async function updateBookStatus(bookId, newStatus) {
   try {
-    const updates = {
+    const response = await api.put(`/books/${bookId}/status`, {
       status: newStatus
-    }
-
-    // Set dates based on status
-    if (newStatus === 'currently_reading') {
-      updates.date_started = new Date().toISOString()
-    } else if (newStatus === 'read') {
-      updates.date_finished = new Date().toISOString()
-    }
-
-    const { data, error } = await supabase
-      .from('user_libraries')
-      .update(updates)
-      .eq('id', libraryId)
-      .select()
-      .single()
-
-    if (error) throw error
-    return { success: true, data }
+    })
+    return { success: true, data: response.data.data }
   } catch (error) {
     console.error('Error updating status:', error)
-    return { success: false, error: error.message }
+    const errorMessage = error.response?.data?.error?.message || error.message || 'Failed to update status'
+    return { success: false, error: errorMessage }
   }
 }
 
 // Remove book from library
-export async function removeBookFromLibrary(libraryId) {
+export async function removeBookFromLibrary(bookId) {
   try {
-    const { error } = await supabase
-      .from('user_libraries')
-      .delete()
-      .eq('id', libraryId)
-
-    if (error) throw error
-    return { success: true }
+    const response = await api.delete(`/books/${bookId}`)
+    return { success: true, data: response.data.data }
   } catch (error) {
     console.error('Error removing book:', error)
-    return { success: false, error: error.message }
+    const errorMessage = error.response?.data?.error?.message || error.message || 'Failed to remove book'
+    return { success: false, error: errorMessage }
+  }
+}
+
+// Check if book is in user's library
+export async function checkBookInLibrary(googleBooksId) {
+  try {
+    const response = await api.get(`/books/check/${googleBooksId}`)
+    return { success: true, data: response.data.data }
+  } catch (error) {
+    console.error('Error checking book:', error)
+    const errorMessage = error.response?.data?.error?.message || error.message || 'Failed to check book'
+    return { success: false, error: errorMessage }
   }
 }
