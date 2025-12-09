@@ -16,7 +16,6 @@ import bookRoutes from './routes/books.js';
 import recommendationsRoutes from './routes/recommendations.js';
 import importRoutes from './routes/import.js';
 import setupRoutes from './routes/setup.js';
-import setupRoutes from './routes/setup.js';
 
 // Import middleware
 import errorHandler from './middleware/errorHandler.js';
@@ -29,6 +28,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const app = express();
+app.set('trust proxy', 1);
 const PORT = process.env.PORT || 8000;
 
 // Security middleware
@@ -88,7 +88,6 @@ app.use('/api/users', userRoutes);
 app.use('/api/books', bookRoutes);
 app.use('/api/recommendations', recommendationsRoutes);
 app.use('/api/import', importRoutes);
-app.use('/api/setup', setupRoutes);
 app.use('/api/setup', setupRoutes);
 
 // 404 handler
