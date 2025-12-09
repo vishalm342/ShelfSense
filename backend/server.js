@@ -15,6 +15,7 @@ import userRoutes from './routes/users.js';
 import bookRoutes from './routes/books.js';
 import recommendationsRoutes from './routes/recommendations.js';
 import importRoutes from './routes/import.js';
+import setupRoutes from './routes/setup.js';
 
 // Import middleware
 import errorHandler from './middleware/errorHandler.js';
@@ -86,6 +87,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/books', bookRoutes);
 app.use('/api/recommendations', recommendationsRoutes);
 app.use('/api/import', importRoutes);
+app.use('/api/setup', setupRoutes);
 
 // 404 handler
 app.use(notFound);
