@@ -61,7 +61,7 @@ export const authService = {
       await api.post('/auth/logout');
       localStorage.removeItem('authToken');
       return { success: true };
-    } catch (error) {
+    } catch {
       // Even if API call fails, remove token locally
       localStorage.removeItem('authToken');
       return { success: true };
