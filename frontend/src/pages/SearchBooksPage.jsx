@@ -1,72 +1,61 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Search, Loader } from 'lucide-react'
 import MainLayout from '../components/layout/MainLayout'
 import BookCard from '../components/common/BookCard'
-import { searchBooks, addBookToLibrary, getUserLibrary } from '../services/booksService'
-import useAuthStore from '../store/authStore'
+import { searchBooks } from '../services/booksService'
+import useBookStore from '../store/bookStore'
 
 export default function SearchBooksPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState([])
   const [isSearching, setIsSearching] = useState(false)
   const [hasSearched, setHasSearched] = useState(false)
-  const [error, setError] = useState(null)
-  const [successMessage, setSuccessMessage] = useState(null)
+  const [localError, setLocalError] = useState(null)
   const [userLibraryIds, setUserLibraryIds] = useState(new Set())
 
-  const { user } = useAuthStore()
+  const { addToLibrary, library, successMessage, error, fetchLibrary } = useBookStore()
+
+  const loadUserLibrary = useCallback(async () => {
+    await fetchLibrary()
+  }, [fetchLibrary])
 
   // Load user's library to check which books they already have
   useEffect(() => {
     loadUserLibrary()
-  }, [])
+  }, [loadUserLibrary])
 
-  const loadUserLibrary = async () => {
-    const result = await getUserLibrary(user.id)
-    if (result.success) {
-      const bookIds = new Set(
-        result.data.map(item => item.books.google_books_id)
-      )
-      setUserLibraryIds(bookIds)
-    }
-  }
+  // Update library IDs when library changes
+  useEffect(() => {
+    const bookIds = new Set(
+      library.map(item => item.book?.googleBooksId).filter(Boolean)
+    )
+    setUserLibraryIds(bookIds)
+  }, [library])
 
   const handleSearch = async (e) => {
     e.preventDefault()
     if (!searchQuery.trim()) return
 
     setIsSearching(true)
-    setError(null)
+    setLocalError(null)
     setHasSearched(true)
 
     try {
       const results = await searchBooks(searchQuery)
       setSearchResults(results)
-    } catch (err) {
-      setError('Failed to search books. Please try again.')
+    } catch {
+      setLocalError('Failed to search books. Please try again.')
     } finally {
       setIsSearching(false)
     }
   }
 
   const handleAddBook = async (book, status) => {
-    const result = await addBookToLibrary(book, user.id, status)
+    const result = await addToLibrary(book, status)
 
     if (result.success) {
-      const statusLabel = {
-        'want_to_read': 'Want to Read',
-        'currently_reading': 'Currently Reading',
-        'read': 'Already Read'
-      }[status]
-
-      setSuccessMessage(`✅ "${book.title}" added to ${statusLabel}!`)
+      // Update local state to mark book as in library
       setUserLibraryIds(prev => new Set([...prev, book.googleBooksId]))
-
-      // Auto-hide after 3 seconds
-      setTimeout(() => setSuccessMessage(null), 3000)
-    } else {
-      setError(result.error)
-      setTimeout(() => setError(null), 3000)
     }
   }
 
@@ -92,9 +81,9 @@ export default function SearchBooksPage() {
             </div>
           )}
 
-          {error && (
+          {(error || localError) && (
             <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
-              {error}
+              {error || localError}
             </div>
           )}
 
