@@ -78,7 +78,7 @@ const useAuthStore = create((set) => ({
     try {
       set({ loading: true, error: null });
       
-      const result = await authService.signOut();
+      await authService.signOut();
       set({ user: null, loading: false });
       
       return { success: true };
