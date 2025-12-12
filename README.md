@@ -148,5 +148,5 @@ ShelfSense/
 For questions, feedback, or support:
 
 - **Email**: vishalm8656@gmail.com
-- **GitHub**: [@yourusername](https://github.com/vishalm342)
+- **GitHub**: [@vishalm342](https://github.com/vishalm342)
 - **Issues**: [Report a bug](https://github.com/yourusername/ShelfSense/issues)
